@@ -12,7 +12,7 @@ Azure Pentesting Resource
 
 A PowerShell script that demonstrates automated token acquisition using the Azure AD device code flow authentication. The script targets Microsoft's authentication endpoints to obtain access and refresh tokens that can be used for various Microsoft services (Graph API, Azure Resource Manager, etc.).
 
-## Features
+### Features
 - Implements the complete OAuth 2.0 device code flow
 - Automatically handles device code request and token polling
 - Configurable resource endpoint targeting (Graph API, Azure RM, etc.)
@@ -20,18 +20,53 @@ A PowerShell script that demonstrates automated token acquisition using the Azur
 - Retrieves both access and refresh tokens
 - Uses the Azure PowerShell client ID for broad API access
 
-## How it Works
+### How it Works
 1. Requests a device code from Azure AD's OAuth endpoint
 2. Displays authentication URL and user code for sign-in
 3. Continuously polls the token endpoint while waiting for user authentication
 4. Upon successful authentication, retrieves and outputs the access token
 5. Silently stores the refresh token for potential reuse
 
-## Usage
+### Usage
+
+```bash
+pwsh
+.\query.ps1
+```
+
+## Authentication Flow
+1. When executed, the script will output something like:
+```bash
+Requesting device code...
+Authentication URL: https://microsoft.com/devicelogin
+User Code: ABCD-EFGH
+Please visit the authentication URL, enter the code above, and sign in.
+```
+2. Visit the provided URL in your browser
+3. Enter the displayed code
+4. Sign in with your Microsoft account
+5. The script will automatically detect the authentication and retrieve the token
+
+#### Resource Targeting
 The script defaults to Microsoft Graph API but can be modified to target other Microsoft API endpoints by changing the `$resource` variable:
 - Microsoft Graph: `https://graph.microsoft.com`
 - Azure Resource Manager: `https://management.azure.com/`
 - Classic Azure Management: `https://management.core.windows.net/`
+
+### Notes
+- The script includes automatic retry logic for token polling
+- Handles rate limiting automatically
+- Includes timeout functionality
+- Stores both access and refresh tokens
+- Access token is output to console
+- Refresh token is stored in variable but not displayed
+
+### Error Handling
+The script will gracefully handle common errors:
+- Authentication timeout
+- Rate limiting
+- Invalid codes
+- Network issues
 
 ---
 
