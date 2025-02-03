@@ -4,7 +4,7 @@ Azure Pentesting Resource
 
 ---
 
-# Powershell Scripts
+# Scripts
 
 # token_polling.ps1
 
@@ -32,6 +32,39 @@ The script defaults to Microsoft Graph API but can be modified to target other M
 - Microsoft Graph: `https://graph.microsoft.com`
 - Azure Resource Manager: `https://management.azure.com/`
 - Classic Azure Management: `https://management.core.windows.net/`
+
+---
+
+# exfil_exchange_email.py
+
+## Microsoft Graph Email Exfiltrator
+
+A Python script that leverages Microsoft Graph API access tokens to retrieve and save emails from Exchange Online/Microsoft 365 mailboxes. The script demonstrates automated email content extraction using the Microsoft Graph API endpoints.
+
+## Features
+- Authenticates using Microsoft Graph API access tokens
+- Retrieves email messages from the authenticated user's mailbox
+- Extracts email subjects and full message bodies
+- Automatically detects and handles HTML-formatted emails
+- Saves email content to local files for offline analysis
+- Uses Microsoft Graph v1.0 API for stable operation
+
+## Technical Details
+- Utilizes the `/me/messages` Graph API endpoint
+- Filters response to include subject and body content
+- Handles HTML content type detection and preservation
+- Implements proper error handling for API responses
+- Maintains original HTML formatting for rendered viewing
+
+## Dependencies
+- requests
+- json
+- base64
+
+## Usage
+1. Insert a valid Microsoft Graph API access token
+2. Run the script to begin email extraction
+3. HTML emails are saved with their subjects as filenames
 
 ---
 
