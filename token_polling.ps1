@@ -5,7 +5,7 @@ $resource = "https://graph.microsoft.com"
 # Step 1: Request the device code
 $deviceCodeRequestParams = @{
     Method = "POST"
-    Uri    = "https://login.microsoftonline.com/Common/oauth2/devicecode"
+    Uri    = "https://login.microsoftonline.com/Common/oauth2/devicecode?api-version=1.0"
     Body   = @{
         resource   = $resource
         client_id = $clientId
