@@ -5,7 +5,7 @@ $resource = "https://graph.microsoft.com"
 # Step 1: Request the device code
 $deviceCodeRequestParams = @{
     Method = "POST"
-    Uri    = "https://login.microsoftonline.com/Common/oauth2/devicecode?api-version=1.0"
+    Uri    = "https://login.microsoftonline.com/Common/oauth2/devicecode"
     Body   = @{
         resource   = $resource
         client_id = $clientId
@@ -18,9 +18,15 @@ try {
     Write-Host "`nAuthentication URL: $($authResponse.verification_url)"
     Write-Host "User Code: $($authResponse.user_code)`n"
     Write-Host "Please visit the authentication URL, enter the code above, and sign in.`n"
+    Write-Host "Debug: Full auth response:"
+    $authResponse | ConvertTo-Json | Write-Host
 }
 catch {
-    Write-Error "Failed to get device code: $_"
+    Write-Error "Failed to get device code. Details:"
+    Write-Error $_.Exception.Message
+    if ($_.ErrorDetails) {
+        Write-Error "Error Details: $($_.ErrorDetails.Message)"
+    }
     return
 }
 
@@ -45,7 +51,8 @@ while ($continue) {
     $total += $interval
 
     if ($total -gt $expires) {
-        Write-Error "Authentication timeout occurred after $total seconds"
+        Write-Error "Timeout occurred"
+        Write-Error "Total time elapsed: $total seconds"
         return
     }
 
@@ -53,42 +60,47 @@ while ($continue) {
         $response = Invoke-RestMethod -UseBasicParsing -Method Post `
             -Uri "https://login.microsoftonline.com/Common/oauth2/token?api-version=1.0" `
             -Body $body `
-            -ErrorAction Stop
+            -ErrorAction SilentlyContinue
 
-        if ($response) {
-            Write-Host "Authentication successful!"
-            $continue = $false
-        }
     }
     catch {
-        $errorMsg = $_.Exception.Message
         try {
             $details = $_.ErrorDetails.Message | ConvertFrom-Json
             $continue = $details.error -eq "authorization_pending"
-            
-            if ($continue) {
-                Write-Host "Waiting for device code authentication... ($($expires - $total) seconds remaining)"
-            }
-            else {
-                Write-Error "Authentication failed: $($details.error_description)"
+            Write-Host $details.error
+
+            if (!$continue) {
+                Write-Error "Authentication failed:"
+                Write-Error $details.error_description
+                Write-Error "Full error details: $($details | ConvertTo-Json)"
                 return
             }
         }
         catch {
-            Write-Error "Failed to process error response: $errorMsg"
+            Write-Error "Failed to process error response:"
+            Write-Error $_.Exception.Message
+            if ($_.Exception.Response) {
+                Write-Error "Status: $($_.Exception.Response.StatusCode.value__) $($_.Exception.Response.StatusDescription)"
+            }
             return
         }
     }
+
+    if ($response) {
+        Write-Host "Token received successfully!"
+        break
+    }
 }
 
+# Output the access token
 if ($response.access_token) {
-    Write-Host "`nAccess token acquired successfully"
-    # Output the access token
+    Write-Host "Access token details:"
+    Write-Host "Token type: $($response.token_type)"
+    Write-Host "Expires in: $($response.expires_in) seconds"
     $response.access_token
-
-    # Store but don't display the refresh token
-    $refreshToken = $response.refresh_token
 }
 else {
-    Write-Error "No access token received in the response"
+    Write-Error "No access token in response"
+    Write-Error "Full response:"
+    $response | ConvertTo-Json | Write-Error
 }
