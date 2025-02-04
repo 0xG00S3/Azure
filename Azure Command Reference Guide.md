@@ -34,11 +34,14 @@ A comprehensive collection of Azure commands and techniques for red team operati
 ### Enumeration Tools
 | Tool | Setup Command | Usage |
 |------|--------------|-------|
+| Azure Service Tags | https://azservicetags.azurewebsites.net/ | `N/A` |
 | AzSubEnum | `git clone https://github.com/yuyudhn/AzSubEnum` | `python3 ~/Tools/AzSubEnum/azsubenum.py -b domain --thread 10` |
-| Cloud_Enum | `git clone [repo]` | `python3 cloud_enum.py -k "target" --disable-aws --disable-gcp` |
-| Oh365UserFinder | `git clone https://github.com/dievus/Oh365UserFinder` | `python3 oh365userfinder.py -d domain.com` |
-| RoadRecon | `pip install roadlib roadrecon --break-system-packages` | `roadrecon auth -u 'user@domain.com' -p 'password'` |
-| ScoutSuite | N/A | `scout azure --user-account -u USERNAME -p PASS --tenant ID_HERE` |
+| Cloud_Enum | `git clone https://github.com/initstring/cloud_enum.git` | `python3 cloud_enum.py -k "target" --disable-aws --disable-gcp` |
+| Oh365UserFinder | `git clone https://github.com/dievus/Oh365UserFinder.git` | `python3 oh365userfinder.py -d domain.com` |
+| RoadRecon | `git clone https://github.com/dirkjanm/ROADtools.git` | `roadrecon auth -u 'user@domain.com' -p 'password'` |
+| Username and Email Wordlist Generator | `git clone https://github.com/hac01/uwg.git` | `python main.py --name "John Doe" --output mywordlist.txt` |
+| Office 365 User Enumeration | `git clone https://github.com/gremwell/o365enum.git` | `python o365enum.py -u users.txt -p Password2 -n 1 -m office.com` |
+| ScoutSuite | `git clone https://github.com/nccgroup/ScoutSuite.git` | `scout azure --user-account -u USERNAME -p PASS --tenant ID_HERE` |
 
 ### Azure CLI Setup
 | Operation | Command |
@@ -100,6 +103,14 @@ Connect-AzAccount -Credential $Credential
 | Get SharePoint Token | `Invoke-RefreshToSharePointToken` |
 
 ## Identity and Access Management
+
+### Access Tools
+| Tool | Setup Command | Usage |
+|------|--------------|-------|
+| o365spray | `git clone https://github.com/0xZDH/o365spray.git` | `python o365spray.py --spray -U usernames.txt -P passwords.txt --count 2 --lockout 5 --domain test.com` |
+| Oh365UserFinder | `git clone https://github.com/dievus/Oh365UserFinder.git` | `python3 oh365userfinder.py --elist email.txt --pwspray -p 'superP@ssw0rd'` |
+| TokenTactics v2 | `git clone https://github.com/f-bader/TokenTacticsV2.git` | `Import-Module .\TokenTactics.psm1; Get-Help Get-AzureToken` |
+| CuddlePhish | `git clone https://github.com/fkasler/cuddlephish.git` | `Read the repo` | 
 
 ### User Management
 | Operation | Command | Notes |
