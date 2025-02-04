@@ -1,6 +1,4 @@
-# Azure
-Azure Pentesting Resource
-
+# Azure Pentesting Resource
 
 ---
 
