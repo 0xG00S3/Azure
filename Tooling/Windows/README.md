@@ -41,7 +41,7 @@ Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force
 
 3. Run the Windows installation script:
 ```powershell
-.\windows-install-modules.ps1
+.\windows-tooling-install.ps1
 ```
 
 The script will:
@@ -104,13 +104,13 @@ Invoke-MSOLSpray -UserList users.txt -Password "password"
 ### Updating Tools
 To update all tools, simply run the installation script again:
 ```powershell
-.\windows-install-modules.ps1
+.\windows-tooling-install.ps1
 ```
 
 ### Cleaning Up
 To remove all installed components:
 ```powershell
-.\windows-cleanup-modules.ps1
+.\windows-tooling-cleanup.ps1
 ```
 
 The cleanup script will:
