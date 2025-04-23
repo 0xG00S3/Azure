@@ -53,14 +53,29 @@ The script will:
 
 ## Usage
 
-After installation, you can import all modules using:
+Due to PowerShell's function capacity limit (4096 functions per session), the modules are split into three separate import scripts. You'll need to use three different PowerShell sessions to import all modules:
+
+1. Azure Modules Session:
 ```powershell
-.\windows-import-modules.ps1
+.\windows-azure-import.ps1
 ```
+This imports all Azure-related modules (Az.*).
+
+2. Microsoft Graph Session:
+```powershell
+.\windows-graph-import.ps1
+```
+This imports all Microsoft Graph modules (Microsoft.Graph.*).
+
+3. Third-Party Tools Session:
+```powershell
+.\windows-tools-import.ps1
+```
+This imports legacy modules, utility modules, and GitHub tools.
 
 ### Common Commands
 
-#### Azure Modules
+#### Azure Modules (First Session)
 ```powershell
 # Connect to Azure
 Connect-AzAccount
@@ -72,7 +87,7 @@ Get-AzResource
 Get-AzRoleAssignment
 ```
 
-#### Microsoft Graph
+#### Microsoft Graph (Second Session)
 ```powershell
 # Connect to Graph
 Connect-MgGraph
@@ -84,18 +99,13 @@ Get-MgUser
 Get-MgUserMemberOf
 ```
 
-#### AADInternals
+#### Third-Party Tools (Third Session)
 ```powershell
-# Get tenant information
+# AADInternals
 Get-AADIntLoginInformation
-
-# Check tenant ID
 Get-AADIntTenantID
-```
 
-#### MSOLSpray
-```powershell
-# Password spray
+# MSOLSpray
 Invoke-MSOLSpray -UserList users.txt -Password "password"
 ```
 
@@ -141,11 +151,17 @@ Note: The cleanup script will skip built-in Windows modules to prevent system is
    - Check token cache
    - Validate credentials
 
+4. Function Capacity Issues
+   - If you see "Function capacity 4096 has been exceeded" errors
+   - Ensure you're using separate PowerShell sessions for each import script
+   - Do not try to import all modules in a single session
+
 ### Platform-Specific Issues
 
 - PowerShell execution policy restrictions
 - Certificate store access
 - WinRM configuration
+- Function capacity limitations
 
 ## Security Considerations
 
