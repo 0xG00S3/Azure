@@ -146,7 +146,8 @@
    ```powershell
    # PowerShell
    $response = Invoke-WebRequest -Uri "https://login.microsoftonline.com/domain.com/.well-known/openid-configuration"
-   $response.Content | ConvertFrom-Json | Select-Object -ExpandProperty tenant_id
+   $tenantId = ($response.Content | ConvertFrom-Json).token_endpoint -replace '^.+\/([0-9a-fA-F\-]+)\/oauth2.+$','$1'
+   Write-Output "Tenant ID:" $tenantId
    # Expected Output: GUID format tenant ID
    ```
 
