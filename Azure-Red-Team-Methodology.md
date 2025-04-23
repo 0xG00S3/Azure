@@ -152,8 +152,9 @@
    ```
 
 3. Enumerate DNS records
+   **Windows**
    ```powershell
-   # PowerShell
+   # PowerShell - Windows only
    $domain = "domain.com"
    $records = @()
    $records += Resolve-DnsName -Name $domain -Type A -ErrorAction SilentlyContinue
@@ -164,6 +165,14 @@
    $records += Resolve-DnsName -Name $domain -Type CNAME -ErrorAction SilentlyContinue
    $records | Format-List
    # Expected Output: Various DNS records including MX pointing to Microsoft
+   ```
+   **Linux**
+   ```bash
+   nslookup domain.com
+   $domain = "domain.com"
+   $aRecords = nslookup $domain | Select-String "Address:"
+   $aRecords
+   $aRecords | ForEach-Object { ($_ -split ":")[1].Trim() }
    ```
 
 **Advanced Techniques**:
