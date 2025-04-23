@@ -164,6 +164,16 @@
    $records += Resolve-DnsName -Name $domain -Type NS -ErrorAction SilentlyContinue
    $records += Resolve-DnsName -Name $domain -Type CNAME -ErrorAction SilentlyContinue
    $records | Format-List
+   # Output A and AAAA Records in a formatted list
+   Write-Output "A & AAAA Records:"
+   $records | Where-Object { $_.Type -eq 'A' -or $_.Type -eq 'AAAA' } |
+    Group-Object Type | ForEach-Object {
+        Write-Host "`n[$($_.Name)]"
+        $_.Group | ForEach-Object { $_.IPAddress }
+    }
+   # M365 Validation
+   Write-Output "Microsoft 365 Tenant Exists!"
+   $records | Where-Object { $_.Type -eq 'TXT' -and $_.Strings -match '^MS=' }
    # Expected Output: Various DNS records including MX pointing to Microsoft
    ```
    **Linux**
