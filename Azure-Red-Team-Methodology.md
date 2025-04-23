@@ -207,6 +207,14 @@
    $response
    ```
 
+**Client IDs are the following hardcoded values for each Application Service:**   
+| Client ID                                 | App                                      | Notes |
+|------------------------------------------|------------------------------------------|-------|
+| d3590ed6-52b3-4102-aeff-aad2292ab01c     | Device Code Flow / Azure CLI / Office    | Used for device code login & branding recon |
+| 04b07795-8ddb-461a-bbee-02f9e1bf7b46     | Azure PowerShell                         | Powershell-based access to Azure resources |
+| 1b730954-1685-4b74-9bfd-dac224a7b894     | Azure Portal                             | Web portal access to Azure                 |
+| 00000003-0000-0000-c000-000000000000     | Microsoft Graph (resource)               | Default Graph resource target              |
+
 **Success Indicators**:
 - Confirmed Entra ID usage
 - Obtained tenant ID
