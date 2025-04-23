@@ -52,7 +52,7 @@ sudo yum install -y powershell
 
 2. Run the installation script with sudo:
 ```bash
-sudo pwsh -File ./install-modules-linux.ps1
+sudo ./azure-cloud-tooling-setup.sh
 ```
 
 The script will:
@@ -118,13 +118,13 @@ Invoke-MSOLSpray -UserList users.txt -Password "password"
 ### Updating Tools
 To update all tools, simply run the installation script again:
 ```bash
-sudo pwsh -File ./install-modules-linux.ps1
+sudo ./azure-cloud-tooling-setup.sh
 ```
 
 ### Cleaning Up
 To remove all installed components:
 ```bash
-sudo ./cleanup.sh
+sudo ./azure-cloud-tooling-cleanup.sh
 ```
 
 The cleanup script will:
