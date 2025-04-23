@@ -175,7 +175,7 @@ foreach ($tool in $githubTools) {
 }
 
 # Download and replace SATOCerts.ps1
-$satoCertsUrl = "https://raw.githubusercontent.com/0xG00S3/Azure/refs/heads/main/Tooling/SATOCerts.ps1"
+$satoCertsUrl = "https://raw.githubusercontent.com/0xG00S3/Azure/refs/heads/main/Tooling/Utility-Scripts/SATOCerts.ps1"
 $satoCertsPath = "$baseDir\Modules\SATO\SATOCerts.ps1"
 
 Write-Host "Downloading updated SATOCerts.ps1..." -ForegroundColor Green
