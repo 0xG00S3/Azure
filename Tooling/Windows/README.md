@@ -41,7 +41,7 @@ Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force
 
 3. Run the Windows installation script:
 ```powershell
-.\install-modules-windows.ps1
+.\windows-install-modules.ps1
 ```
 
 The script will:
@@ -55,7 +55,7 @@ The script will:
 
 After installation, you can import all modules using:
 ```powershell
-.\import-modules-windows.ps1
+.\windows-import-modules.ps1
 ```
 
 ### Common Commands
@@ -104,13 +104,13 @@ Invoke-MSOLSpray -UserList users.txt -Password "password"
 ### Updating Tools
 To update all tools, simply run the installation script again:
 ```powershell
-.\install-modules-windows.ps1
+.\windows-install-modules.ps1
 ```
 
 ### Cleaning Up
 To remove all installed components:
 ```powershell
-.\cleanup-modules.ps1
+.\windows-cleanup-modules.ps1
 ```
 
 The cleanup script will:
