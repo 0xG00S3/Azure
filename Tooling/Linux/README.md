@@ -1,6 +1,6 @@
 # Azure Red Team Tooling for Linux
 
-This repository contains setup scripts for Azure red team tooling on Linux systems. It creates a clean, organized environment for all your tools with virtual environments and easy-to-use launchers.
+This repository contains setup scripts for Azure red team tooling on Linux systems. It creates a clean, organized environment for all your tools with proper module management and easy-to-use scripts.
 
 ## Prerequisites
 
@@ -11,25 +11,28 @@ This repository contains setup scripts for Azure red team tooling on Linux syste
 - Git
 - OpenSSL
 - Build essentials
+- Sudo access
 
 ## Directory Structure
 
 ```
-~/.local/share/powershell/Modules/  # PowerShell modules
-├── MSOLSpray
-├── AADInternals
-├── TokenTacticsV2
-└── GraphRunner
-
-~/Tools/
-├── Python/
+/opt/az-rt-tools/
+├── Modules/          # PowerShell modules
+│   ├── MSOLSpray
+│   ├── AADInternals
+│   ├── TokenTacticsV2
+│   ├── GraphRunner
+│   └── SATO
+├── Tools/           # General tools
+├── Python/          # Python tools
 │   ├── AzSubEnum
 │   ├── Oh365UserFinder
 │   └── BasicBlobFinder
-├── Ruby/
-│   └── Evil-WinRM
-└── Go/
-    └── Evilginx
+├── Ruby/            # Ruby tools
+└── Go/              # Go tools
+
+/opt/venv/           # Virtual environments
+/usr/local/share/powershell/Modules/  # Symbolic links to modules
 ```
 
 ## Installation
@@ -47,29 +50,26 @@ sudo yum install -y https://packages.microsoft.com/config/rhel/7/packages-micros
 sudo yum install -y powershell
 ```
 
-2. Make the setup script executable:
+2. Run the installation script with sudo:
 ```bash
-chmod +x setup.sh
-```
-
-3. Run the setup script:
-```bash
-./setup.sh
+sudo pwsh -File ./install-modules-linux.ps1
 ```
 
 The script will:
-- Create necessary directories
+- Create necessary directories under `/opt/az-rt-tools`
 - Install PowerShell modules
-- Set up Python virtual environments
-- Install Ruby gems
-- Install Go tools
-- Create launcher scripts
+- Download and install GitHub tools
+- Set up Python tools
+- Install Ruby tools
+- Create symbolic links for module access
+- Set proper permissions
+- Verify installations
 
 ## Usage
 
 After installation, you can import all modules using:
 ```bash
-pwsh -File ./import-modules-linux.ps1
+pwsh -File ./linux-import-modules.ps1
 ```
 
 ### Common Commands
@@ -98,48 +98,47 @@ Get-MgUser
 Get-MgUserMemberOf
 ```
 
-#### Python Tools
-```bash
-# Run AzSubEnum
-python3 ~/Tools/Python/AzSubEnum/azsubenum.py -b domain.com -t 10 -p 5
+#### AADInternals
+```powershell
+# Get tenant information
+Get-AADIntLoginInformation
 
-# Run Oh365UserFinder
-python3 ~/Tools/Python/Oh365UserFinder/Oh365UserFinder.py -d domain.com -u users.txt
-
-# Run BasicBlobFinder
-python3 ~/Tools/Python/BasicBlobFinder/basicblobfinder.py namelist.txt
+# Check tenant ID
+Get-AADIntTenantID
 ```
 
-#### Ruby Tools
-```bash
-# Use Evil-WinRM
-evil-winrm -i <ip> -u <user> -p <password>
+#### MSOLSpray
+```powershell
+# Password spray
+Invoke-MSOLSpray -UserList users.txt -Password "password"
 ```
 
 ## Maintenance
 
 ### Updating Tools
-To update all tools, simply run the setup script again:
+To update all tools, simply run the installation script again:
 ```bash
-./setup.sh
+sudo pwsh -File ./install-modules-linux.ps1
 ```
 
 ### Cleaning Up
 To remove all installed components:
 ```bash
-./cleanup.sh
+sudo ./cleanup.sh
 ```
 
 The cleanup script will:
-- Uninstall all PowerShell modules
+- Remove all PowerShell modules
 - Remove all GitHub tools
 - Remove all Python tools
+- Remove all Ruby tools
+- Remove all Go tools
 - Clean up virtual environments
-- Remove Ruby gems
-- Clean up the base directory if empty
+- Remove symbolic links
 - Reset execution policy
+- Clean up base directories if empty
 
-Note: The cleanup script will skip system-installed modules to prevent system issues.
+Note: The cleanup script requires sudo privileges and will remove all installed components.
 
 ## Troubleshooting
 
@@ -149,6 +148,7 @@ Note: The cleanup script will skip system-installed modules to prevent system is
    - Check internet connectivity
    - Verify PowerShell execution policy
    - Check for sufficient permissions
+   - Ensure using sudo for installation
 
 2. Certificate Issues
    - Verify certificate store access
@@ -165,6 +165,7 @@ Note: The cleanup script will skip system-installed modules to prevent system is
 - PowerShell Core compatibility
 - Certificate store access
 - WinRM installation and configuration
+- Sudo access requirements
 
 ## Security Considerations
 
@@ -172,6 +173,7 @@ Note: The cleanup script will skip system-installed modules to prevent system is
    - Verify tool sources
    - Check tool signatures
    - Use secure download methods
+   - Use sudo only when necessary
 
 2. Credential Management
    - Use secure credential storage
