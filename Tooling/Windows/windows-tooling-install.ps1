@@ -1,5 +1,5 @@
 # Azure Red Team Module Installation Script for Windows
-# This script installs all PowerShell modules and tools required for Azure red team operations on Windows
+# This script installs all PowerShell modules required for Azure red team operations on Windows
 
 # Check if running as administrator
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -17,36 +17,23 @@ catch {
     Write-Host "Warning: Could not set execution policy. Continuing with current policy." -ForegroundColor Yellow
 }
 
-# Create base directory
+# Define base directory
 $baseDir = "C:\dontscan\azure-cloud"
-if (!(Test-Path $baseDir)) {
-    New-Item -ItemType Directory -Path $baseDir -Force
-}
 
-# Create subdirectories
-$dirs = @(
-    "Modules",
-    "Tools",
-    "Python",
-    "Ruby",
-    "Go"
+# Create directory structure
+$directories = @(
+    "$baseDir\Modules",
+    "$baseDir\Tools",
+    "$baseDir\Python",
+    "$baseDir\Ruby",
+    "$baseDir\Go"
 )
 
-foreach ($dir in $dirs) {
-    $path = Join-Path $baseDir $dir
-    if (!(Test-Path $path)) {
-        New-Item -ItemType Directory -Path $path -Force
+foreach ($dir in $directories) {
+    if (-not (Test-Path $dir)) {
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+        Write-Host "Created directory: $dir" -ForegroundColor Green
     }
-}
-
-# Install NuGet package provider if not already installed
-if (!(Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue)) {
-    Install-PackageProvider -Name NuGet -Force
-}
-
-# Install PowerShellGet if not already installed
-if (!(Get-Module -ListAvailable -Name PowerShellGet)) {
-    Install-Module -Name PowerShellGet -Force
 }
 
 # Define required modules
@@ -86,187 +73,224 @@ $requiredModules = @(
     "PSFramework",
     "PSModuleDevelopment",
     "PSFTP",
-    "PSScriptAnalyzer",
-    "PSReadLine"
+    "PSScriptAnalyzer"
 )
 
 # Install each module
 foreach ($module in $requiredModules) {
-    $installedModule = Get-Module -ListAvailable -Name $module
-    if ($installedModule) {
-        Write-Host "Module $module is already installed (Version: $($installedModule.Version)). Skipping..." -ForegroundColor Yellow
-    }
-    else {
-        Write-Host "Installing module: $module" -ForegroundColor Green
-        try {
-            Install-Module -Name $module -Force -AllowClobber -Scope AllUsers
+    Write-Host "Checking module: $module" -ForegroundColor Green
+    try {
+        $installedModule = Get-Module -Name $module -ListAvailable | Sort-Object Version -Descending | Select-Object -First 1
+        if ($installedModule) {
+            Write-Host "Module $module is installed (Version: $($installedModule.Version))" -ForegroundColor Yellow
+            
+            # Check for updates
+            $latestVersion = Find-Module -Name $module -ErrorAction SilentlyContinue
+            if ($latestVersion -and $latestVersion.Version -gt $installedModule.Version) {
+                Write-Host "Updating $module from $($installedModule.Version) to $($latestVersion.Version)..." -ForegroundColor Yellow
+                Update-Module -Name $module -Force -ErrorAction Stop
+                Write-Host "Successfully updated $module" -ForegroundColor Green
+            } else {
+                Write-Host "Module $module is up to date" -ForegroundColor Green
+            }
+        }
+        else {
+            Write-Host "Installing $module..." -ForegroundColor Yellow
+            Install-Module -Name $module -Force -AllowClobber -Scope AllUsers -ErrorAction Stop
             Write-Host "Successfully installed $module" -ForegroundColor Green
         }
-        catch {
-            Write-Host "Failed to install $module. Error: $_" -ForegroundColor Red
-        }
+    }
+    catch {
+        Write-Host "Failed to process $module. Error: $_" -ForegroundColor Red
     }
 }
 
-# Install additional tools from GitHub
+# Define GitHub tools
 $githubTools = @(
     @{
         Name = "MSOLSpray"
-        URL = "https://github.com/dafthack/MSOLSpray/archive/master.zip"
-        Path = Join-Path $baseDir "Modules\MSOLSpray"
+        Repo = "dafthack/MSOLSpray"
+        Path = "$baseDir\Modules\MSOLSpray"
     },
     @{
         Name = "AADInternals"
-        URL = "https://github.com/Gerenios/AADInternals/archive/master.zip"
-        Path = Join-Path $baseDir "Modules\AADInternals"
+        Repo = "Gerenios/AADInternals"
+        Path = "$baseDir\Modules\AADInternals"
+        Branch = "master"
     },
     @{
         Name = "TokenTacticsV2"
-        URL = "https://github.com/f-bader/TokenTacticsV2/archive/master.zip"
-        Path = Join-Path $baseDir "Modules\TokenTacticsV2"
+        Repo = "f-bader/TokenTacticsV2"
+        Path = "$baseDir\Modules\TokenTacticsV2"
     },
     @{
         Name = "GraphRunner"
-        URL = "https://github.com/dafthack/GraphRunner/archive/master.zip"
-        Path = Join-Path $baseDir "Modules\GraphRunner"
+        Repo = "dafthack/GraphRunner"
+        Path = "$baseDir\Modules\GraphRunner"
     }
 )
 
-# Download and install GitHub tools
+# Install GitHub tools
 foreach ($tool in $githubTools) {
-    if (Test-Path $tool.Path) {
-        Write-Host "$($tool.Name) is already installed at $($tool.Path). Skipping..." -ForegroundColor Yellow
+    Write-Host "Installing $($tool.Name) from GitHub..." -ForegroundColor Green
+    try {
+        if (Test-Path $tool.Path) {
+            Write-Host "$($tool.Name) is already installed. Skipping..." -ForegroundColor Yellow
+            continue
+        }
+
+        $tempDir = Join-Path $env:TEMP $tool.Name
+        if (Test-Path $tempDir) {
+            Remove-Item -Path $tempDir -Recurse -Force
+        }
+
+        # Clone the repository
+        if ($tool.Branch) {
+            git clone -b $tool.Branch "https://github.com/$($tool.Repo).git" $tempDir
+        } else {
+            git clone "https://github.com/$($tool.Repo).git" $tempDir
+        }
+        
+        if (Test-Path $tempDir) {
+            # Create destination directory if it doesn't exist
+            if (-not (Test-Path $tool.Path)) {
+                New-Item -ItemType Directory -Path $tool.Path -Force | Out-Null
+            }
+            
+            # Copy files to destination
+            Copy-Item -Path "$tempDir\*" -Destination $tool.Path -Recurse -Force
+            
+            # Clean up temp directory
+            Remove-Item -Path $tempDir -Recurse -Force
+            
+            Write-Host "Successfully installed $($tool.Name)" -ForegroundColor Green
+        }
+        else {
+            Write-Host "Failed to install $($tool.Name) - Repository not cloned" -ForegroundColor Red
+        }
     }
-    else {
-        Write-Host "Installing $($tool.Name) from GitHub..." -ForegroundColor Green
-        try {
-            # Create temporary directory
-            $tempDir = Join-Path $env:TEMP $tool.Name
-            if (Test-Path $tempDir) {
-                Remove-Item -Path $tempDir -Recurse -Force
-            }
-            New-Item -ItemType Directory -Path $tempDir -Force
-
-            # Download and extract
-            Invoke-WebRequest -Uri $tool.URL -OutFile "$tempDir\master.zip"
-            Expand-Archive -Path "$tempDir\master.zip" -DestinationPath $tempDir -Force
-
-            # Move to modules directory
-            if (Test-Path $tool.Path) {
-                Remove-Item -Path $tool.Path -Recurse -Force
-            }
-            Move-Item -Path "$tempDir\*-master\*" -Destination $tool.Path -Force
-
-            # Verify installation
-            if (Test-Path $tool.Path) {
-                Write-Host "Successfully installed $($tool.Name)" -ForegroundColor Green
-            }
-            else {
-                Write-Host "Failed to install $($tool.Name) - Directory not created" -ForegroundColor Red
-            }
-        }
-        catch {
-            Write-Host "Failed to install $($tool.Name). Error: $_" -ForegroundColor Red
-        }
-        finally {
-            # Cleanup
-            if (Test-Path $tempDir) {
-                Remove-Item -Path $tempDir -Recurse -Force
-            }
-        }
+    catch {
+        Write-Host "Failed to install $($tool.Name). Error: $_" -ForegroundColor Red
     }
 }
 
-# Install Python tools
+# Download and replace SATOCerts.ps1
+$satoCertsUrl = "https://raw.githubusercontent.com/0xG00S3/Azure/refs/heads/main/Tooling/SATOCerts.ps1"
+$satoCertsPath = "$baseDir\Modules\SATO\SATOCerts.ps1"
+
+Write-Host "Downloading updated SATOCerts.ps1..." -ForegroundColor Green
+try {
+    # Create SATO directory if it doesn't exist
+    $satoDir = Split-Path -Parent $satoCertsPath
+    if (-not (Test-Path $satoDir)) {
+        New-Item -ItemType Directory -Path $satoDir -Force | Out-Null
+    }
+
+    # Download the file
+    Invoke-WebRequest -Uri $satoCertsUrl -OutFile $satoCertsPath
+    Write-Host "Successfully downloaded and replaced SATOCerts.ps1" -ForegroundColor Green
+}
+catch {
+    Write-Host "Failed to download SATOCerts.ps1. Error: $_" -ForegroundColor Red
+}
+
+# Define Python tools
 $pythonTools = @(
     @{
         Name = "AzSubEnum"
-        URL = "https://github.com/yuyudhn/AzSubEnum/archive/master.zip"
-        Path = Join-Path $baseDir "Python\AzSubEnum"
+        Repo = "yuyudhn/AzSubEnum"
+        Path = "$baseDir\Python\AzSubEnum"
     },
     @{
         Name = "Oh365UserFinder"
-        URL = "https://github.com/dievus/Oh365UserFinder/archive/master.zip"
-        Path = Join-Path $baseDir "Python\Oh365UserFinder"
+        Repo = "dievus/Oh365UserFinder"
+        Path = "$baseDir\Python\Oh365UserFinder"
     },
     @{
         Name = "BasicBlobFinder"
-        URL = "https://github.com/joswr1ght/basicblobfinder/archive/master.zip"
-        Path = Join-Path $baseDir "Python\BasicBlobFinder"
+        Repo = "joswr1ght/basicblobfinder"
+        Path = "$baseDir\Python\BasicBlobFinder"
     }
 )
 
-# Download and install Python tools
+# Install Python tools
 foreach ($tool in $pythonTools) {
-    if (Test-Path $tool.Path) {
-        Write-Host "$($tool.Name) is already installed at $($tool.Path). Skipping..." -ForegroundColor Yellow
+    Write-Host "Installing $($tool.Name) from GitHub..." -ForegroundColor Green
+    try {
+        if (Test-Path $tool.Path) {
+            Write-Host "$($tool.Name) is already installed. Skipping..." -ForegroundColor Yellow
+            continue
+        }
+
+        $tempDir = Join-Path $env:TEMP $tool.Name
+        if (Test-Path $tempDir) {
+            Remove-Item -Path $tempDir -Recurse -Force
+        }
+
+        # Clone the repository
+        git clone "https://github.com/$($tool.Repo).git" $tempDir
+        
+        if (Test-Path $tempDir) {
+            # Create destination directory if it doesn't exist
+            if (-not (Test-Path $tool.Path)) {
+                New-Item -ItemType Directory -Path $tool.Path -Force | Out-Null
+            }
+            
+            # Copy files to destination
+            Copy-Item -Path "$tempDir\*" -Destination $tool.Path -Recurse -Force
+            
+            # Clean up temp directory
+            Remove-Item -Path $tempDir -Recurse -Force
+            
+            Write-Host "Successfully installed $($tool.Name)" -ForegroundColor Green
+        }
+        else {
+            Write-Host "Failed to install $($tool.Name) - Repository not cloned" -ForegroundColor Red
+        }
     }
-    else {
-        Write-Host "Installing $($tool.Name) from GitHub..." -ForegroundColor Green
-        try {
-            # Create temporary directory
-            $tempDir = Join-Path $env:TEMP $tool.Name
-            if (Test-Path $tempDir) {
-                Remove-Item -Path $tempDir -Recurse -Force
-            }
-            New-Item -ItemType Directory -Path $tempDir -Force
-
-            # Download and extract
-            Invoke-WebRequest -Uri $tool.URL -OutFile "$tempDir\master.zip"
-            Expand-Archive -Path "$tempDir\master.zip" -DestinationPath $tempDir -Force
-
-            # Move to tools directory
-            if (Test-Path $tool.Path) {
-                Remove-Item -Path $tool.Path -Recurse -Force
-            }
-            Move-Item -Path "$tempDir\*-master\*" -Destination $tool.Path -Force
-
-            # Install Python dependencies
-            if (Test-Path "$($tool.Path)\requirements.txt") {
-                python -m pip install -r "$($tool.Path)\requirements.txt"
-            }
-
-            # Verify installation
-            if (Test-Path $tool.Path) {
-                Write-Host "Successfully installed $($tool.Name)" -ForegroundColor Green
-            }
-            else {
-                Write-Host "Failed to install $($tool.Name) - Directory not created" -ForegroundColor Red
-            }
-        }
-        catch {
-            Write-Host "Failed to install $($tool.Name). Error: $_" -ForegroundColor Red
-        }
-        finally {
-            # Cleanup
-            if (Test-Path $tempDir) {
-                Remove-Item -Path $tempDir -Recurse -Force
-            }
-        }
+    catch {
+        Write-Host "Failed to install $($tool.Name). Error: $_" -ForegroundColor Red
     }
 }
 
-# Verify installations
+# Verify module installations
 Write-Host "`nVerifying module installations..." -ForegroundColor Yellow
 foreach ($module in $requiredModules) {
-    if (Get-Module -ListAvailable -Name $module) {
-        Write-Host "$module is installed" -ForegroundColor Green
+    $installedModule = Get-Module -Name $module -ListAvailable
+    if ($installedModule) {
+        Write-Host "$module is installed (Version: $($installedModule.Version))" -ForegroundColor Green
     }
     else {
         Write-Host "$module is NOT installed" -ForegroundColor Red
     }
 }
 
-# Verify GitHub tools
+# Verify GitHub tool installations
 Write-Host "`nVerifying GitHub tool installations..." -ForegroundColor Yellow
 foreach ($tool in $githubTools) {
     if (Test-Path $tool.Path) {
         Write-Host "$($tool.Name) is installed" -ForegroundColor Green
+        # Additional verification for AADInternals
+        if ($tool.Name -eq "AADInternals") {
+            $modulePath = Join-Path $tool.Path "AADInternals.psm1"
+            if (Test-Path $modulePath) {
+                Write-Host "AADInternals module file found" -ForegroundColor Green
+            } else {
+                Write-Host "AADInternals module file not found" -ForegroundColor Red
+            }
+        }
     }
     else {
         Write-Host "$($tool.Name) is NOT installed" -ForegroundColor Red
     }
 }
 
+# Verify SATOCerts.ps1
+if (Test-Path $satoCertsPath) {
+    Write-Host "SATOCerts.ps1 is installed" -ForegroundColor Green
+} else {
+    Write-Host "SATOCerts.ps1 is NOT installed" -ForegroundColor Red
+}
+
 Write-Host "`nModule installation complete!" -ForegroundColor Green
-Write-Host "Please run import-modules.ps1 to import all modules." -ForegroundColor Yellow 
+Write-Host "Please run windows-import-modules.ps1 to import all modules." -ForegroundColor Yellow 
